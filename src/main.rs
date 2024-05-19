@@ -31,6 +31,20 @@ impl fmt::Display for MyWordEntry {
     }
 }
 
+
+struct MyWordEntryAll<'a>(Vec<&'a WordEntry>);
+
+
+impl fmt::Display for MyWordEntryAll<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let word_entries = &self.0;
+        write!(
+            f, "All word entry: {:?}",
+                word_entries,
+        )
+    }
+}
+
 fn main() {
     println!("Welcome to chinese Dictdoy!\nEnter some english word to look up to ...");
 
@@ -40,6 +54,7 @@ fn main() {
     let results = query(word).unwrap();
 
     println!("results");
+    println!("Result all : {}", MyWordEntryAll(results.clone()));
 
     for result in results {
         println!("{}", MyWordEntry(result.clone()));
