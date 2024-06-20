@@ -1,63 +1,45 @@
-extern crate chinese_dictionary;
-use chinese_dictionary::{query, WordEntry};
+#![warn(clippy::all, rust_2018_idioms)]
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use std::io;
-use std::fmt;
+// When compiling natively:
+#[cfg(not(target_arch = "wasm32"))]
+fn main() -> eframe::Result<()> {
+    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
-// newtype wrapper for WordEntry
-struct MyWordEntry(WordEntry);
-
-impl fmt::Display for MyWordEntry {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let word_entry = &self.0;
-        write!(
-            f, "Simplified: {}\n
-                Pinyin Marks: {}\n
-                English: {:?}\n
-                Measure Words: {:?}\n
-                HSK: {}",
-
-                // word_entry.traditional,
-                word_entry.simplified,
-                word_entry.pinyin_marks,
-                // word_entry.pinyin_numbers,
-                word_entry.english,
-                // word_entry.tone_marks,
-                // word_entry.hash,
-                word_entry.measure_words,
-                word_entry.hsk,
-                // word_entry.word_id
-        )
-    }
+    let native_options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([800.0, 600.0])
+            .with_min_inner_size([540.0, 490.0])
+            .with_icon(
+                // NOTE: Adding an icon is optional
+                eframe::icon_data::from_png_bytes(&include_bytes!("../assets/icon-256.png")[..])
+                    .expect("Failed to load icon"),
+            ),
+        ..Default::default()
+    };
+    eframe::run_native(
+        "eframe template",
+        native_options,
+        Box::new(|cc| Box::new(dictdoy::TemplateApp::new(cc))),
+    )
 }
 
-
-struct MyWordEntryAll<'a>(Vec<&'a WordEntry>);
-
-
-impl fmt::Display for MyWordEntryAll<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let word_entries = &self.0;
-        write!(
-            f, "All word entry: {:?}",
-                word_entries,
-        )
-    }
-}
-
+// When compiling to web using trunk:
+#[cfg(target_arch = "wasm32")]
 fn main() {
-    println!("Welcome to chinese Dictdoy!\nEnter some english word to look up to ...");
+    // Redirect `log` message to `console.log` and friends:
+    eframe::WebLogger::init(log::LevelFilter::Debug).ok();
 
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("failed to read line");
-    let word = input.trim();
-    let results = query(word).unwrap();
+    let web_options = eframe::WebOptions::default();
 
-    println!("results");
-    println!("Result all : {}", MyWordEntryAll(results.clone()));
-
-    for result in results {
-        println!("{}", MyWordEntry(result.clone()));
-    }
+    wasm_bindgen_futures::spawn_local(async {
+        eframe::WebRunner::new()
+            .start(
+                "the_canvas_id", // hardcode it
+                web_options,
+                Box::new(|cc| Box::new(dictdoy::TemplateApp::new(cc))),
+            )
+            .await
+            .expect("failed to start eframe");
+    });
 }
-
