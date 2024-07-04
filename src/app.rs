@@ -182,8 +182,8 @@ fn show_result(ui: &mut egui::Ui, search_results: &Vec<WordEntry>) {
     // hanzi only
     for entry in search_results {
         ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new(&entry.simplified.to_string()).text_style(TextStyle::Heading)); 
-            ui.label(RichText::new(&entry.pinyin_marks.to_string()).color(Color32::from_rgb(255, 174, 32))); 
+            ui.label(RichText::new(entry.simplified.to_string()).text_style(TextStyle::Heading)); 
+            ui.label(RichText::new(entry.pinyin_marks.to_string()).color(Color32::from_rgb(255, 174, 32))); 
         });
         
         ui.end_row(); 
