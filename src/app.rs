@@ -179,11 +179,25 @@ fn blank_result(ui: &mut egui::Ui) {
 }
 
 fn show_result(ui: &mut egui::Ui, search_results: &Vec<WordEntry>) {
+
+    // Calculate padding to vertically align with the heading
+    let heading_height = ui.fonts().row_height(TextStyle::Heading);
+    let body_height = ui.fonts().row_height(TextStyle::Body);
+    let padding = (heading_height - body_height) / 2.0;
+    
     // hanzi only
     for entry in search_results {
         ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new(&entry.simplified.to_string()).text_style(TextStyle::Heading)); 
-            ui.label(RichText::new(&entry.pinyin_marks.to_string()).color(Color32::from_rgb(255, 0, 0))); 
+            let heading = RichText::new(&entry.simplified.to_string()).text_style(TextStyle::Heading);
+            ui.label(heading);
+
+            let pinyin = RichText::new(&entry.pinyin_marks.to_string())
+                .color(Color32::from_rgb(255, 100, 0))
+                .text_style(TextStyle::Body); // Keep the default text style for pinyin
+
+
+            ui.add(egui::Label::new(pinyin).wrap(false).sense(egui::Sense::hover()))
+                .translate(egui::Vec2::new(0.0, padding));
         });
         
         ui.end_row(); 
