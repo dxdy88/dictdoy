@@ -1,45 +1,9 @@
 extern crate chinese_dictionary;
 use chinese_dictionary::{query, WordEntry};
-use std::fmt;
 
-#[derive(Clone)]
-struct MyWordEntry(WordEntry);
-
-impl fmt::Display for MyWordEntry {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let word_entry = &self.0;
-        write!(
-            f, "Simplified: {}\n
-                Pinyin Marks: {}\n
-                English: {:?}\n
-                Measure Words: {:?}\n
-                HSK: {}",
-
-                // word_entry.traditional,
-                word_entry.simplified,
-                word_entry.pinyin_marks,
-                // word_entry.pinyin_numbers,
-                word_entry.english,
-                // word_entry.tone_marks,
-                // word_entry.hash,
-                word_entry.measure_words,
-                word_entry.hsk,
-                // word_entry.word_id
-        )
-    }
-}
-
-struct MyWordEntryAll<'a>(Vec<&'a WordEntry>);
-
-impl fmt::Display for MyWordEntryAll<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let word_entries = &self.0;
-        for entry in word_entries {
-            writeln!(f, "{}", MyWordEntry((*entry).clone()))?;
-        }
-        Ok(())
-    }
-}
+use egui::RichText;
+use egui::TextStyle;
+use egui::Color32;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -81,8 +45,7 @@ impl TemplateApp {
 
         cc.egui_ctx.set_fonts(fonts);
 
-        // Load previous app state (if any).
-        // Note that you must enable the `persistence` feature for this to work.
+        // Load previous app state (if any). Note that you must enable the `persistence` feature for this to work.
         if let Some(storage) = cc.storage {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
@@ -94,11 +57,13 @@ impl TemplateApp {
 impl eframe::App for TemplateApp {
     /// Called by the frame work to save state before shutdown.
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
+
         eframe::set_value(storage, eframe::APP_KEY, self);
     }
 
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             // The top panel is often a good place for a menu bar:
 
@@ -141,9 +106,8 @@ impl eframe::App for TemplateApp {
                 });
             });
 
-        // use egui::text::LayoutJob;
-
         egui::CentralPanel::default().show(ctx, |ui| {
+
             ui.horizontal(|ui| {
                 ui.text_edit_singleline(&mut self.label);
                 self.search_results = search(&self.label);
@@ -151,52 +115,16 @@ impl eframe::App for TemplateApp {
 
             ui.separator();
 
-            if !self.search_results.is_empty() {
+            egui::ScrollArea::vertical().show(ui, |ui| {    
 
-                // apply text formatter later
-                ui.label(MyWordEntryAll(self.search_results.iter().collect()).to_string());
-
-                // let pixels_per_point = ui.ctx().pixels_per_point();
-                // let points_per_pixel = 1.0 / pixels_per_point;
-                // let extra_letter_spacing_pixels = 0.0;
-
-                // let line_height_pixels = 30;
-                // let max_rows = 10;
-                // // let break_anywhere = false;
-                // let overflow_character = None;
-
-                // let text = MyWordEntryAll(self.search_results.iter().collect()).to_string();
-
-                // egui::ScrollArea::vertical()
-                // .auto_shrink(false)
-                // .show(ui, |ui| {
-                //     let extra_letter_spacing = points_per_pixel * *extra_letter_spacing_pixels as f32;
-                //     let line_height = (*line_height_pixels != 0)
-                //         .then_some(points_per_pixel * *line_height_pixels as f32);
-
-                //     let mut job = LayoutJob::single_section(
-                //         text.to_owned(),
-                //         egui::TextFormat {
-                //             extra_letter_spacing,
-                //             line_height,
-                //             ..Default::default()
-                //         },
-                //     );
-                //     job.wrap = egui::text::TextWrapping {
-                //         max_rows: *max_rows,
-                //         break_anywhere: false,
-                //         overflow_character: *overflow_character,
-                //         ..Default::default()
-                //     };
-
-                //     // NOTE: `Label` overrides some of the wrapping settings, e.g. wrap width
-                //     ui.label(job);
-                //     });
-            }
-
-            else {
-                blank_result(ui);
-            }
+                if !self.search_results.is_empty() {
+                    // apply text formatter later
+                    show_result(ui, &self.search_results);
+                }
+                else {
+                    blank_result(ui);
+                }
+            });            
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                 powered_by_egui_and_eframe(ui);
@@ -220,8 +148,8 @@ fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
     });
 }
 
-
 fn search(word: &str) -> Vec<WordEntry> {
+
     match query(word) {
         Some(results) => results.into_iter().cloned().collect(),
         None => Vec::new(), // Handle error appropriately
@@ -229,6 +157,7 @@ fn search(word: &str) -> Vec<WordEntry> {
 }
 
 fn lorem_ipsum(ui: &mut egui::Ui) {
+
     ui.with_layout(
         egui::Layout::top_down(egui::Align::LEFT).with_cross_justify(true),
         |ui| {
@@ -239,6 +168,7 @@ fn lorem_ipsum(ui: &mut egui::Ui) {
 }
 
 fn blank_result(ui: &mut egui::Ui) {
+
     ui.with_layout(
         egui::Layout::top_down(egui::Align::LEFT).with_cross_justify(true),
         |ui| {
@@ -246,4 +176,25 @@ fn blank_result(ui: &mut egui::Ui) {
             ui.label(egui::RichText::new("Search some english word").small().weak());
         },
     );
+}
+
+fn show_result(ui: &mut egui::Ui, search_results: &Vec<WordEntry>) {
+    // hanzi only
+    for entry in search_results {
+        ui.horizontal_wrapped(|ui| {
+            ui.label(RichText::new(&entry.simplified.to_string()).text_style(TextStyle::Heading)); 
+            ui.label(RichText::new(&entry.pinyin_marks.to_string()).color(Color32::from_rgb(255, 0, 0))); 
+        });
+        
+        ui.end_row(); 
+
+        ui.horizontal_wrapped(|ui| {
+            for definition in &entry.english {
+                ui.label(format!("• {}", definition)); 
+                ui.end_row();
+            }
+        });
+        
+        ui.separator();
+    }    
 }
