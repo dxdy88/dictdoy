@@ -93,18 +93,18 @@ impl eframe::App for TemplateApp {
             });
         });
 
-        egui::SidePanel::left("left_panel")
-            .resizable(true)
-            .default_width(180.0)
-            .width_range(80.0..=200.0)
-            .show(ctx, |ui| {
-                ui.vertical_centered(|ui| {
-                    ui.heading("Hello,");
-                });
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    lorem_ipsum(ui);
-                });
-            });
+        // egui::SidePanel::left("left_panel")
+        //     .resizable(true)
+        //     .default_width(180.0)
+        //     .width_range(80.0..=200.0)
+        //     .show(ctx, |ui| {
+        //         ui.vertical_centered(|ui| {
+        //             ui.heading("Hello,");
+        //         });
+        //         egui::ScrollArea::vertical().show(ui, |ui| {
+        //             lorem_ipsum(ui);
+        //         });
+        //     });
 
         egui::CentralPanel::default().show(ctx, |ui| {
 
@@ -156,16 +156,16 @@ fn search(word: &str) -> Vec<WordEntry> {
     }
 }
 
-fn lorem_ipsum(ui: &mut egui::Ui) {
+// fn lorem_ipsum(ui: &mut egui::Ui) {
 
-    ui.with_layout(
-        egui::Layout::top_down(egui::Align::LEFT).with_cross_justify(true),
-        |ui| {
-            ui.add(egui::Separator::default().grow(12.0));
-            ui.label(egui::RichText::new("welcome to Dictdoy,\nan experimental Chinese dictionary!").small().weak());
-        },
-    );
-}
+//     ui.with_layout(
+//         egui::Layout::top_down(egui::Align::LEFT).with_cross_justify(true),
+//         |ui| {
+//             ui.add(egui::Separator::default().grow(12.0));
+//             ui.label(egui::RichText::new("welcome to Dictdoy,\nan experimental Chinese dictionary!").small().weak());
+//         },
+//     );
+// }
 
 fn blank_result(ui: &mut egui::Ui) {
 
@@ -179,25 +179,11 @@ fn blank_result(ui: &mut egui::Ui) {
 }
 
 fn show_result(ui: &mut egui::Ui, search_results: &Vec<WordEntry>) {
-
-    // Calculate padding to vertically align with the heading
-    let heading_height = ui.fonts().row_height(TextStyle::Heading);
-    let body_height = ui.fonts().row_height(TextStyle::Body);
-    let padding = (heading_height - body_height) / 2.0;
-    
     // hanzi only
     for entry in search_results {
         ui.horizontal_wrapped(|ui| {
-            let heading = RichText::new(&entry.simplified.to_string()).text_style(TextStyle::Heading);
-            ui.label(heading);
-
-            let pinyin = RichText::new(&entry.pinyin_marks.to_string())
-                .color(Color32::from_rgb(255, 100, 0))
-                .text_style(TextStyle::Body); // Keep the default text style for pinyin
-
-
-            ui.add(egui::Label::new(pinyin).wrap(false).sense(egui::Sense::hover()))
-                .translate(egui::Vec2::new(0.0, padding));
+            ui.label(RichText::new(&entry.simplified.to_string()).text_style(TextStyle::Heading)); 
+            ui.label(RichText::new(&entry.pinyin_marks.to_string()).color(Color32::from_rgb(255, 174, 32))); 
         });
         
         ui.end_row(); 
