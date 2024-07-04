@@ -1,9 +1,9 @@
 extern crate chinese_dictionary;
 use chinese_dictionary::{query, WordEntry};
 
+use egui::Color32;
 use egui::RichText;
 use egui::TextStyle;
-use egui::Color32;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -57,13 +57,11 @@ impl TemplateApp {
 impl eframe::App for TemplateApp {
     /// Called by the frame work to save state before shutdown.
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
-
         eframe::set_value(storage, eframe::APP_KEY, self);
     }
 
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             // The top panel is often a good place for a menu bar:
 
@@ -107,24 +105,20 @@ impl eframe::App for TemplateApp {
         //     });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-
             ui.horizontal(|ui| {
                 ui.text_edit_singleline(&mut self.label);
                 self.search_results = search(&self.label);
             });
 
             ui.separator();
-
-            egui::ScrollArea::vertical().show(ui, |ui| {    
-
+            egui::ScrollArea::vertical().show(ui, |ui| {
                 if !self.search_results.is_empty() {
                     // apply text formatter later
                     show_result(ui, &self.search_results);
-                }
-                else {
+                } else {
                     blank_result(ui);
                 }
-            });            
+            });
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                 powered_by_egui_and_eframe(ui);
@@ -149,7 +143,6 @@ fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
 }
 
 fn search(word: &str) -> Vec<WordEntry> {
-
     match query(word) {
         Some(results) => results.into_iter().cloned().collect(),
         None => Vec::new(), // Handle error appropriately
@@ -168,12 +161,15 @@ fn search(word: &str) -> Vec<WordEntry> {
 // }
 
 fn blank_result(ui: &mut egui::Ui) {
-
     ui.with_layout(
         egui::Layout::top_down(egui::Align::LEFT).with_cross_justify(true),
         |ui| {
             ui.add(egui::Separator::default().grow(12.0));
-            ui.label(egui::RichText::new("Search some english word").small().weak());
+            ui.label(
+                egui::RichText::new("Search some english word")
+                    .small()
+                    .weak(),
+            );
         },
     );
 }
@@ -182,19 +178,21 @@ fn show_result(ui: &mut egui::Ui, search_results: &Vec<WordEntry>) {
     // hanzi only
     for entry in search_results {
         ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new(entry.simplified.to_string()).text_style(TextStyle::Heading)); 
-            ui.label(RichText::new(entry.pinyin_marks.to_string()).color(Color32::from_rgb(255, 174, 32))); 
+            ui.label(RichText::new(entry.simplified.to_string()).text_style(TextStyle::Heading));
+            ui.label(
+                RichText::new(entry.pinyin_marks.to_string())
+                    .color(Color32::from_rgb(255, 174, 32)),
+            );
         });
-        
-        ui.end_row(); 
+        ui.end_row();
 
         ui.horizontal_wrapped(|ui| {
             for definition in &entry.english {
-                ui.label(format!("• {}", definition)); 
+                ui.label(format!("• {}", definition));
                 ui.end_row();
             }
         });
-        
+
         ui.separator();
-    }    
+    }
 }
